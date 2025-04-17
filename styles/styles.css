@@ -1,0 +1,141 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+  color: #00ffe7;
+  font-family: "Orbitron", sans-serif;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px #ff00c8;
+  color: #ff00c8;
+}
+
+p.choose {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 5px #00ffe7;
+}
+
+span {
+  font-weight: bold;
+  color: #00ff88;
+  text-shadow: 0 0 5px #00ff88;
+}
+
+.cards-display {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.cards-display .card {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #ff00c8;
+  box-shadow: 0 0 10px #ff00c8, 0 0 20px #00ffe7 inset;
+  padding: 1rem;
+  border-radius: 12px;
+  color: #fff;
+  height: 500px;
+  width: 300px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+}
+
+.cards-display .card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: magenta;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cards-display .card:hover::after {
+  opacity: 0.3;
+}
+
+.cards-display .card p,
+.cards-display .card h2 {
+  font-size: 2rem;
+  position: relative;
+  z-index: 2;
+  font-weight: bold;
+  text-shadow: 0 0 5px #000;
+  margin: 0;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.cards-display .card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #ff00c8, 0 0 25px #00ffe7;
+  cursor: pointer;
+}
+
+button.start {
+  background-color: transparent;
+  border: 2px solid #00ff88;
+  color: #00ff88;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px #00ff88;
+}
+
+button.start:hover {
+  background-color: #00ff88;
+  color: #000;
+  box-shadow: 0 0 15px #00ff88, 0 0 25px #00ff88;
+  cursor: pointer;
+}
+
+.card.selected {
+  outline: 3px solid #00ff88;
+  box-shadow: 0 0 20px #00ff88, 0 0 30px #00ff88 inset;
+  border: none;
+}
+
+.card.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: #00ff88;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card.disabled {
+  filter: grayscale(100%) brightness(50%);
+  pointer-events: none;
+  opacity: 0.6;
+}
