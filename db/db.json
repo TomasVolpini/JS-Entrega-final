@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "death",
+    "price": 500,
+    "img": "./images/death.png"
+  },
+  {
+    "id": 2,
+    "name": "emperor",
+    "price": 300,
+    "img": "./images/emperor.png"
+  },
+  {
+    "id": 3,
+    "name": "empress",
+    "price": 350,
+    "img": "./images/empress.png"
+  },
+  {
+    "id": 4,
+    "name": "fool",
+    "price": 100,
+    "img": "./images/fool.png"
+  },
+  {
+    "id": 5,
+    "name": "hanged",
+    "price": 250,
+    "img": "./images/hanged.png"
+  },
+  {
+    "id": 6,
+    "name": "hierophant",
+    "price": 100,
+    "img": "./images/hierophant.png"
+  },
+  {
+    "id": 7,
+    "name": "magician",
+    "price": 250,
+    "img": "./images/magician.png"
+  },
+  {
+    "id": 8,
+    "name": "moon",
+    "price": 300,
+    "img": "./images/moon.png"
+  },
+  {
+    "id": 9,
+    "name": "star",
+    "price": 300,
+    "img": "./images/star.png"
+  },
+  {
+    "id": 10,
+    "name": "sun",
+    "price": 500,
+    "img": "./images/sun.png"
+  },
+  {
+    "id": 11,
+    "name": "priestess",
+    "price": 350,
+    "img": "./images/priestess.png"
+  }
+]

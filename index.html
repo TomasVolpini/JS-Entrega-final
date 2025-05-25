@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,7 +13,15 @@
       Dispones de <span id="counter-electrons"></span> electrones para activar
       tus cartas, utilízalos sabiamente
     </p>
+    <select id="sort-cards">
+      <option value="default">Ordenar por...</option>
+      <option value="price-asc">Precio (menor a mayor)</option>
+      <option value="price-desc">Precio (mayor a menor)</option>
+      <option value="name-asc">Nombre (A-Z)</option>
+      <option value="name-desc">Nombre (Z-A)</option>
+    </select>
+
     <div class="cards-display" id="cards-display"></div>
-    <button class="start">A jugar</button>
+    <button id="start">activar</button>
   </body>
 </html>

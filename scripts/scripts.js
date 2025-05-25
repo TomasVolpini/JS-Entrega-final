@@ -1,61 +1,115 @@
 const cards = [];
-class deck {
-  static id = 0;
-  constructor(name, price, img) {
-    this.id = ++deck.id;
-    (this.name = name), (this.price = price), (this.img = img);
+const selectedCards = [];
+
+const initialElectrons = 2000;
+let electrons = initialElectrons;
+
+fetch("./db/db.json")
+  .then((response) => response.json())
+  .then((data) => {
+    data.forEach((card) => {
+      cards.push(card);
+    });
+
+    renderCards(cards);
+    loadLocalCards();
+    activateCards();
+  });
+
+let sort = document.getElementById("sort-cards");
+sort.onchange = () => {
+  const value = sort.value;
+  switch (value) {
+    case "price-asc":
+      cards.sort((a, b) => a.price - b.price);
+      break;
+    case "price-desc":
+      cards.sort((a, b) => b.price - a.price);
+      break;
+    case "name-asc":
+      cards.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case "name-desc":
+      cards.sort((a, b) => b.name.localeCompare(a.name));
+      break;
+  }
+
+  renderCards(cards);
+};
+
+function loadLocalCards() {
+  const localSelectedCards = JSON.parse(localStorage.getItem("characters"));
+  if (localSelectedCards.length > 0) {
+    localSelectedCards.forEach((localCard) => {
+      const originalCard = cards.find((card) => card.id === localCard.id);
+      if (cards.some((card) => card.id === localCard.id)) {
+        selectedCards.push(originalCard);
+      }
+    });
+    selectedCards.forEach((selectedCard) => {
+      const cardElement = document.getElementById(selectedCard.id);
+      if (cards.some((card) => card.id === selectedCard.id)) {
+        cardElement.classList.add("selected");
+      }
+    });
+
+    updateElectrons();
+    cardAvailability();
   }
 }
 
-const card1 = new deck("death", 500, "./images/death.png");
-const card2 = new deck("emperor", 300, "./images/emperor.png");
-const card3 = new deck("empress", 350, "./images/empress.png");
-const card4 = new deck("fool", 100, "./images/fool.png");
-const card5 = new deck("hanged", 250, "./images/hanged.png");
-const card6 = new deck("hierophant", 100, "./images/hierophant.png");
-const card7 = new deck("magician", 250, "./images/magician.png");
-const card8 = new deck("moon", 300, "./images/moon.png");
-const card9 = new deck("star", 300, "./images/star.png");
-const card10 = new deck("sun", 500, "./images/sun.png");
-const card11 = new deck("priestess", 350, "./images/priestess.png");
-
-cards.push(
-  card1,
-  card2,
-  card3,
-  card4,
-  card5,
-  card6,
-  card7,
-  card8,
-  card9,
-  card10,
-  card11
-);
-
-let cardsDisplay = document.getElementById("cards-display");
-
 function renderCards(cardsArray) {
+  let cardsDisplay = document.getElementById("cards-display");
+  cardsDisplay.innerHTML = "";
   cardsArray.forEach((card) => {
     const display = document.createElement("div");
     display.id = `${card.id}`;
     display.className = "div-img card";
     display.innerHTML = `<h2>${card.name}</h2>
-                        <p>${card.price}</p>`;
+                         <p>${card.price}</p>`;
     display.setAttribute(
       "style",
       `background-image: url(${card.img}) ; background-size: 100%;`
     );
+
+    // Si la carta está seleccionada, agrego la clase "selected"
+    if (selectedCards.some((selected) => selected.id === card.id)) {
+      display.classList.add("selected");
+    }
+
     cardsDisplay.appendChild(display);
-    selectCard();
+  });
+
+  selectCard();
+  cardAvailability();
+  updateElectrons();
+}
+
+function renderActiveCards(cardsArray) {
+  let cardsDisplay = document.getElementById("cards-display");
+  cardsDisplay.innerHTML = "";
+  cardsArray.forEach((card) => {
+    const display = document.createElement("div");
+    display.id = `${card.id}`;
+    display.className = "div-img card";
+    display.innerHTML = `<h2>${card.name}</h2>`;
+    display.setAttribute(
+      "style",
+      `background-image: url(${card.img}) ; background-size: 100%;`
+    );
+    display.classList.remove("selected");
+
+    cardsDisplay.appendChild(display);
   });
 }
-renderCards(cards);
 
-const selectedCards = [];
-let electrons = 2000;
-const counterElectrons = document.getElementById("counter-electrons");
-counterElectrons.innerHTML = electrons;
+function updateElectrons() {
+  const counterElectrons = document.getElementById("counter-electrons");
+  electrons =
+    initialElectrons -
+    selectedCards.reduce((contador, card) => contador + card.price, 0);
+  counterElectrons.innerHTML = electrons;
+}
 
 function selectCard() {
   const selectButtons = document.querySelectorAll(".card");
@@ -66,20 +120,18 @@ function selectCard() {
       const selectedCard = cards.find((card) => card.id === cardId);
       const alreadySelected = selectedCards.some((card) => card.id === cardId);
 
-      // Si no está seleccionada y alcanza para comprar
       if (!alreadySelected && electrons - selectedCard.price >= 0) {
         selectedCards.push(selectedCard);
-        button.classList.add("selected"); // ayudita de ChatGPT :p
-        electrons = electrons - selectedCard.price;
+        button.classList.add("selected");
         localStorage.setItem("characters", JSON.stringify(selectedCards));
       } else if (alreadySelected) {
         const index = selectedCards.findIndex((card) => card.id === cardId);
         selectedCards.splice(index, 1);
-        button.classList.remove("selected"); // ayudita de ChatGPT :p
-        electrons = electrons + selectedCard.price;
+        button.classList.remove("selected");
         localStorage.setItem("characters", JSON.stringify(selectedCards));
       }
-      counterElectrons.innerHTML = electrons;
+
+      updateElectrons();
       cardAvailability();
     };
   });
@@ -100,4 +152,34 @@ function cardAvailability() {
       button.classList.remove("disabled");
     }
   });
+}
+
+function activateCards() {
+  let activateButton = document.getElementById("start");
+  let allSet = document.querySelector(".choose");
+
+  activateButton.onclick = () => {
+    let countdown = 5;
+    sort.remove();
+    activateButton.remove();
+    renderActiveCards(selectedCards);
+    selectedCards.forEach((card) => {
+      const cardElement = document.getElementById(card.id);
+      cardElement.classList.add("locked");
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    allSet.innerHTML = `Has activado las siguientes cartas, el juego comienza en ${countdown}`;
+    localStorage.clear();
+
+    const interval = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        allSet.innerHTML = `Has activado las siguientes cartas, el juego comienza en ${countdown}`;
+      } else {
+        clearInterval(interval);
+        window.location.href = "./pages/juego.html";
+      }
+    }, 1000);
+  };
 }

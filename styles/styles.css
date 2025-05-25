@@ -98,7 +98,7 @@ span {
   cursor: pointer;
 }
 
-button.start {
+button#start {
   background-color: transparent;
   border: 2px solid #00ff88;
   color: #00ff88;
@@ -111,7 +111,7 @@ button.start {
   box-shadow: 0 0 10px #00ff88;
 }
 
-button.start:hover {
+button#start:hover {
   background-color: #00ff88;
   color: #000;
   box-shadow: 0 0 15px #00ff88, 0 0 25px #00ff88;
@@ -138,4 +138,59 @@ button.start:hover {
   filter: grayscale(100%) brightness(50%);
   pointer-events: none;
   opacity: 0.6;
+}
+
+#sort-cards {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  background-color: #0d0d0d;
+  color: #00ffe7;
+  border: 2px solid #ff00c8;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  width: 500px;
+  cursor: pointer;
+  text-shadow: 0 0 8px #00ffe7;
+  box-shadow: 0 0 10px #ff00c8 inset;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #ff00c8 50%),
+    linear-gradient(135deg, #ff00c8 50%, transparent 50%);
+  background-position: calc(100% - 20px) calc(1em + 2px),
+    calc(100% - 15px) calc(1em + 2px);
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+}
+
+#sort-cards:hover,
+#sort-cards:focus {
+  color: #ff00c8;
+  box-shadow: 0 0 15px #ff00c8 inset;
+  outline: none;
+}
+
+#sort-cards option {
+  background-color: #0d0d0d;
+  color: #00ffe7;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 500;
+  text-shadow: 0 0 4px #00ffe7;
+}
+
+#sort-cards::-ms-expand {
+  display: none;
+}
+
+.card.locked {
+  pointer-events: none;
+  cursor: default;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.card.locked::after {
+  opacity: 0 !important;
 }
