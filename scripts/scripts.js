@@ -5,13 +5,14 @@ const initialElectrons = 2000;
 let electrons = initialElectrons;
 let isEditing = false;
 
+if (!localStorage.getItem("decks")) {
+  localStorage.setItem("decks", JSON.stringify([]));
+}
+
 fetch("./db/db.json")
   .then((response) => response.json())
   .then((data) => {
-    data.forEach((card) => {
-      cards.push(card);
-    });
-
+    data.forEach((card) => cards.push(card));
     renderCards(cards);
     loadEditingDeck();
     activateCards();
@@ -34,7 +35,6 @@ sort.onchange = () => {
       cards.sort((a, b) => b.name.localeCompare(a.name));
       break;
   }
-
   renderCards(cards);
 };
 
@@ -46,7 +46,6 @@ function loadEditingDeck() {
     document.getElementById("player-name").value = editingDeck.playerName;
     document.getElementById("start").textContent = "Reactivar";
     localStorage.setItem("originalDeckName", editingDeck.playerName);
-
     selectedCards.length = 0;
 
     editingDeck.cards.forEach((cardId) => {
@@ -54,11 +53,11 @@ function loadEditingDeck() {
       if (card) selectedCards.push(card);
     });
 
-    updateElectrons();
-    cardAvailability();
     renderCards(cards);
   } else {
-    const tempCards = JSON.parse(localStorage.getItem("tempSelectedCards"));
+    const tempCardsRaw = localStorage.getItem("tempSelectedCards");
+    const tempCards = tempCardsRaw ? JSON.parse(tempCardsRaw) : [];
+    selectedCards.length = 0;
     tempCards.forEach((id) => {
       const card = cards.find((c) => c.id === id);
       if (card) selectedCards.push(card);
@@ -74,12 +73,9 @@ function renderCards(cardsArray) {
     const display = document.createElement("div");
     display.id = `${card.id}`;
     display.className = "div-img card";
-    display.innerHTML = `<h2>${card.name}</h2>
-                       <p>${card.price}</p>`;
-    display.setAttribute(
-      "style",
-      `background-image: url(${card.img}) ; background-size: 100%;`
-    );
+    display.innerHTML = `<h2>${card.name}</h2><p>${card.price}</p>`;
+    display.style.backgroundImage = `url(${card.img})`;
+    display.style.backgroundSize = "100%";
 
     if (selectedCards.some((selected) => selected.id === card.id)) {
       display.classList.add("selected");
@@ -101,10 +97,8 @@ function renderActiveCards(cardsArray) {
     display.id = `${card.id}`;
     display.className = "div-img card";
     display.innerHTML = `<h2>${card.name}</h2>`;
-    display.setAttribute(
-      "style",
-      `background-image: url(${card.img}) ; background-size: 100%;`
-    );
+    display.style.backgroundImage = `url(${card.img})`;
+    display.style.backgroundSize = "100%";
     display.classList.remove("selected");
 
     cardsDisplay.appendChild(display);
@@ -114,14 +108,12 @@ function renderActiveCards(cardsArray) {
 function updateElectrons() {
   const counterElectrons = document.getElementById("counter-electrons");
   electrons =
-    initialElectrons -
-    selectedCards.reduce((contador, card) => contador + card.price, 0);
+    initialElectrons - selectedCards.reduce((sum, card) => sum + card.price, 0);
   counterElectrons.innerHTML = electrons;
 }
 
 function selectCard() {
   const selectButtons = document.querySelectorAll(".card");
-
   selectButtons.forEach((button) => {
     button.onclick = () => {
       const cardId = parseInt(button.id);
@@ -149,7 +141,6 @@ function selectCard() {
 
 function cardAvailability() {
   const selectButtons = document.querySelectorAll(".card");
-
   selectButtons.forEach((button) => {
     const cardId = parseInt(button.id);
     const cardData = cards.find((card) => card.id === cardId);
@@ -164,22 +155,17 @@ function cardAvailability() {
 }
 
 function activateCards() {
-  let activateButton = document.getElementById("start");
-  let allSet = document.querySelector(".choose");
+  const activateButton = document.getElementById("start");
+  const allSet = document.querySelector(".choose");
 
   activateButton.onclick = () => {
     const playerName = document.getElementById("player-name").value.trim();
-    if (!playerName) {
-      showAlert("¡Atención!", "Debes ingresar un nombre al deck.");
-      return;
-    }
+    if (!playerName)
+      return showAlert("¡Atención!", "Debes ingresar un nombre al deck.");
+    if (selectedCards.length === 0)
+      return showAlert("¡Atención!", "Debes seleccionar al menos una carta.");
 
-    if (selectedCards.length === 0) {
-      showAlert("¡Atención!", "Debes seleccionar al menos una carta.");
-      return;
-    }
-
-    const decks = JSON.parse(localStorage.getItem("decks"));
+    const decks = JSON.parse(localStorage.getItem("decks")) || [];
     const originalName = localStorage.getItem("originalDeckName");
 
     const nameIsTaken = decks.some((d) => {
@@ -187,13 +173,11 @@ function activateCards() {
       return d.playerName === playerName;
     });
 
-    if (nameIsTaken) {
-      showAlert("¡Error!", "Ya existe un deck con ese nombre.");
-      return;
-    }
+    if (nameIsTaken)
+      return showAlert("¡Error!", "Ya existe un deck con ese nombre.");
 
     const newDeck = {
-      playerName: playerName,
+      playerName,
       cards: selectedCards.map((card) => card.id),
       usedElectrons: selectedCards.reduce((sum, card) => sum + card.price, 0),
     };
@@ -211,7 +195,6 @@ function activateCards() {
 
     localStorage.removeItem("editingDeck");
     localStorage.removeItem("tempSelectedCards");
-
     startCountdown(allSet);
   };
 
@@ -223,16 +206,14 @@ function activateCards() {
 function showAlert(title, text) {
   Swal.fire({
     icon: "error",
-    title: title,
-    text: text,
+    title,
+    text,
     background: "#ff00c8",
-    color: "#000000",
-    iconColor: "#000000",
-    confirmButtonColor: "#000000",
+    color: "#000",
+    iconColor: "#000",
+    confirmButtonColor: "#000",
     confirmButtonText: "Entendido",
-    customClass: {
-      popup: "swal2-fucsia",
-    },
+    customClass: { popup: "swal2-fucsia" },
   });
 }
 
