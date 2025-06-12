@@ -3,6 +3,7 @@ const selectedCards = [];
 
 const initialElectrons = 2000;
 let electrons = initialElectrons;
+let isEditing = false;
 
 fetch("./db/db.json")
   .then((response) => response.json())
@@ -12,7 +13,7 @@ fetch("./db/db.json")
     });
 
     renderCards(cards);
-    loadLocalCards();
+    loadEditingDeck();
     activateCards();
   });
 
@@ -37,24 +38,32 @@ sort.onchange = () => {
   renderCards(cards);
 };
 
-function loadLocalCards() {
-  const localSelectedCards = JSON.parse(localStorage.getItem("characters"));
-  if (localSelectedCards.length > 0) {
-    localSelectedCards.forEach((localCard) => {
-      const originalCard = cards.find((card) => card.id === localCard.id);
-      if (cards.some((card) => card.id === localCard.id)) {
-        selectedCards.push(originalCard);
-      }
-    });
-    selectedCards.forEach((selectedCard) => {
-      const cardElement = document.getElementById(selectedCard.id);
-      if (cards.some((card) => card.id === selectedCard.id)) {
-        cardElement.classList.add("selected");
-      }
+function loadEditingDeck() {
+  const editingDeck = JSON.parse(localStorage.getItem("editingDeck"));
+
+  if (editingDeck) {
+    isEditing = true;
+    document.getElementById("player-name").value = editingDeck.playerName;
+    document.getElementById("start").textContent = "Reactivar";
+    localStorage.setItem("originalDeckName", editingDeck.playerName);
+
+    selectedCards.length = 0;
+
+    editingDeck.cards.forEach((cardId) => {
+      const card = cards.find((c) => c.id === cardId);
+      if (card) selectedCards.push(card);
     });
 
     updateElectrons();
     cardAvailability();
+    renderCards(cards);
+  } else {
+    const tempCards = JSON.parse(localStorage.getItem("tempSelectedCards"));
+    tempCards.forEach((id) => {
+      const card = cards.find((c) => c.id === id);
+      if (card) selectedCards.push(card);
+    });
+    renderCards(cards);
   }
 }
 
@@ -66,13 +75,12 @@ function renderCards(cardsArray) {
     display.id = `${card.id}`;
     display.className = "div-img card";
     display.innerHTML = `<h2>${card.name}</h2>
-                         <p>${card.price}</p>`;
+                       <p>${card.price}</p>`;
     display.setAttribute(
       "style",
       `background-image: url(${card.img}) ; background-size: 100%;`
     );
 
-    // Si la carta está seleccionada, agrego la clase "selected"
     if (selectedCards.some((selected) => selected.id === card.id)) {
       display.classList.add("selected");
     }
@@ -81,8 +89,8 @@ function renderCards(cardsArray) {
   });
 
   selectCard();
-  cardAvailability();
   updateElectrons();
+  cardAvailability();
 }
 
 function renderActiveCards(cardsArray) {
@@ -123,16 +131,18 @@ function selectCard() {
       if (!alreadySelected && electrons - selectedCard.price >= 0) {
         selectedCards.push(selectedCard);
         button.classList.add("selected");
-        localStorage.setItem("characters", JSON.stringify(selectedCards));
       } else if (alreadySelected) {
         const index = selectedCards.findIndex((card) => card.id === cardId);
         selectedCards.splice(index, 1);
         button.classList.remove("selected");
-        localStorage.setItem("characters", JSON.stringify(selectedCards));
       }
 
       updateElectrons();
       cardAvailability();
+      localStorage.setItem(
+        "tempSelectedCards",
+        JSON.stringify(selectedCards.map((c) => c.id))
+      );
     };
   });
 }
@@ -145,7 +155,6 @@ function cardAvailability() {
     const cardData = cards.find((card) => card.id === cardId);
     const isSelected = selectedCards.some((card) => card.id === cardId);
 
-    // Si no está seleccionada y no alcanza para comprarla
     if (!isSelected && electrons < cardData.price) {
       button.classList.add("disabled");
     } else {
@@ -159,27 +168,96 @@ function activateCards() {
   let allSet = document.querySelector(".choose");
 
   activateButton.onclick = () => {
-    let countdown = 5;
-    sort.remove();
-    activateButton.remove();
-    renderActiveCards(selectedCards);
-    selectedCards.forEach((card) => {
-      const cardElement = document.getElementById(card.id);
-      cardElement.classList.add("locked");
+    const playerName = document.getElementById("player-name").value.trim();
+    if (!playerName) {
+      showAlert("¡Atención!", "Debes ingresar un nombre al deck.");
+      return;
+    }
+
+    if (selectedCards.length === 0) {
+      showAlert("¡Atención!", "Debes seleccionar al menos una carta.");
+      return;
+    }
+
+    const decks = JSON.parse(localStorage.getItem("decks"));
+    const originalName = localStorage.getItem("originalDeckName");
+
+    const nameIsTaken = decks.some((d) => {
+      if (isEditing && d.playerName === originalName) return false;
+      return d.playerName === playerName;
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    allSet.innerHTML = `Has activado las siguientes cartas, el juego comienza en ${countdown}`;
-    localStorage.clear();
+    if (nameIsTaken) {
+      showAlert("¡Error!", "Ya existe un deck con ese nombre.");
+      return;
+    }
 
-    const interval = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        allSet.innerHTML = `Has activado las siguientes cartas, el juego comienza en ${countdown}`;
-      } else {
-        clearInterval(interval);
-        window.location.href = "./pages/juego.html";
-      }
-    }, 1000);
+    const newDeck = {
+      playerName: playerName,
+      cards: selectedCards.map((card) => card.id),
+      usedElectrons: selectedCards.reduce((sum, card) => sum + card.price, 0),
+    };
+
+    if (isEditing) {
+      const updatedDecks = decks.map((d) =>
+        d.playerName === originalName ? newDeck : d
+      );
+      localStorage.setItem("decks", JSON.stringify(updatedDecks));
+      localStorage.removeItem("originalDeckName");
+    } else {
+      decks.push(newDeck);
+      localStorage.setItem("decks", JSON.stringify(decks));
+    }
+
+    localStorage.removeItem("editingDeck");
+    localStorage.removeItem("tempSelectedCards");
+
+    startCountdown(allSet);
   };
+
+  document.getElementById("view-decks").onclick = () => {
+    window.location.href = "./pages/decks.html";
+  };
+}
+
+function showAlert(title, text) {
+  Swal.fire({
+    icon: "error",
+    title: title,
+    text: text,
+    background: "#ff00c8",
+    color: "#000000",
+    iconColor: "#000000",
+    confirmButtonColor: "#000000",
+    confirmButtonText: "Entendido",
+    customClass: {
+      popup: "swal2-fucsia",
+    },
+  });
+}
+
+function startCountdown(allSet) {
+  let countdown = 5;
+  document.getElementById("sort-cards").remove();
+  document.getElementById("start").remove();
+  document.getElementById("view-decks").remove();
+
+  renderActiveCards(selectedCards);
+  selectedCards.forEach((card) => {
+    const cardElement = document.getElementById(card.id);
+    cardElement.classList.add("locked");
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  allSet.innerHTML = `Has activado las siguientes cartas, redirigiendo al deck en ${countdown}`;
+
+  const interval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      allSet.innerHTML = `Has activado las siguientes cartas, redirigiendo al deck en ${countdown}`;
+    } else {
+      clearInterval(interval);
+      window.location.href = "./pages/decks.html";
+    }
+  }, 1000);
 }

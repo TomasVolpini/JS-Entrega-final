@@ -9,6 +9,14 @@
   </head>
   <body>
     <h1>Selección de cartas</h1>
+    <div class="player-input">
+      <input
+        type="text"
+        id="player-name"
+        placeholder="Ingresa tu nombre"
+        required
+      />
+    </div>
     <p class="choose">
       Dispones de <span id="counter-electrons"></span> electrones para activar
       tus cartas, utilízalos sabiamente
@@ -22,6 +30,10 @@
     </select>
 
     <div class="cards-display" id="cards-display"></div>
-    <button id="start">activar</button>
+    <div class="buttons-container">
+      <button id="start">activar</button>
+      <button id="view-decks">ir a decks</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </body>
 </html>
